@@ -6,6 +6,8 @@ import re
 import os
 size = 10
 
+# 0.0.9
+
 screen_values = ["B"]*(size**2)
 
 def clear_screen():
@@ -33,13 +35,15 @@ def generate_colored_string(x:str):
 def interpret_value(value, registers):
     if (match := re.search(r"GT\((.+)\)", value)):
         return int(registers[match.group(1)])
+    elif (match := re.search(r"IT\((.+)\)", value)):
+        return int(match.group(1))
     elif (match := re.search(r"ST\((.+)\)", value)):
         return str(match.group(1))
     elif value in registers:
         return str(value)
     else:
         try:
-            return int(value)
+            return str(value)
         except ValueError:
             return value
 
@@ -52,6 +56,7 @@ def check_break():
 def interpret_code(code:str):
     global screen_values
     running = True
+    screen_values = ["B"]*(size**2)
 
     def goto_line(x):
         global pointer
@@ -110,6 +115,12 @@ def interpret_code(code:str):
                             sc += "# "
                         elif x == "R":
                             sc += colorama.Fore.RED + "# " + colorama.Fore.RESET
+                        elif x == "Y":
+                            sc += colorama.Fore.YELLOW + "# " + colorama.Fore.RESET
+                        elif x == "G":
+                            sc += colorama.Fore.GREEN + "# " + colorama.Fore.RESET
+                        elif x == "BL":
+                            sc += colorama.Fore.BLUE + "# " + colorama.Fore.RESET
                     i += 1
                 sc += "\n"
             clear_screen()
@@ -183,18 +194,23 @@ def interpret_code(code:str):
                 else:
                     y -= 1
                     p += 2 * (x - y) + 1
-
+        elif command == "MANPRINT":
+            x = interpret_value(commands[1], registers)
+            print(x)
         if not rp:
             pointer += 1
-
+switch = lambda x, y, z: z if x == y else y
 def Option(question: str, options: list) -> str:
     x = 0
+    n = [">","-"]
+    p = 0
+    c = 0
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')  # Clear screen
         print(question)
         for idx, option in enumerate(options):
             if idx == x:
-                print('>', option)
+                print(n[c], option)
             else:
                 print(option)
 
@@ -211,6 +227,11 @@ def Option(question: str, options: list) -> str:
             while keyboard.is_pressed('shift'):  # Wait until 'shift' is released
                 time.sleep(0.01)
             return options[x]
+        p += 1
+        if p > 5:
+            p = 0
+            c = switch(c, 0, 1)
+
 
 def read_items():
     items = []
@@ -253,7 +274,7 @@ FOR
 COMPUTERS
 """))
     print(lo[m])
-    print(f"0.0.7")
+    print(f"0.0.9")
     time.sleep(0.1)
     
     if m + 1 < len(lo):
